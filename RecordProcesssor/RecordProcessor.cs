@@ -1,10 +1,7 @@
 ﻿using RecordProcesssor.Model;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
-using System.Threading.Tasks;
 using System.IO.Abstractions;
 
 namespace RecordProcesssor
@@ -34,11 +31,7 @@ namespace RecordProcesssor
         {
             get
             {
-                if(_records != null)
-                {
-                    return null;
-                }
-                return null;
+               return _records??GetRecords();
             }
             private set { }
         }
@@ -68,7 +61,7 @@ namespace RecordProcesssor
                     return SeparatorType.Comma;
                 }
 
-                if (line1.IndexOf(' ') != -1 || line1.IndexOf('\t') != -1)
+                if (line1.IndexOf(' ') != -1)
                 {
                     return SeparatorType.Space;
                 }
@@ -86,10 +79,51 @@ namespace RecordProcesssor
             }
         }
 
-        public void ProcessRecord()
+        protected List<PersonRecord> GetRecords()
         {
-
+            return new List<PersonRecord>();
         }
 
+        public List<PersonRecord> ProcessRecord()
+        {
+            char[] fieldSeparator = null;
+            switch(Separator)
+            {
+                case SeparatorType.Comma:
+                    fieldSeparator = new char[] {','};
+                    break;
+                case SeparatorType.Pipe:
+                    fieldSeparator = new char[] { '|' };
+                    break;
+                case SeparatorType.Space:
+                    fieldSeparator = new char[] { ' ' };
+                    break;
+                default:
+                    throw new InvalidDataException("Invalid separators");
+            }
+
+            _records = new List<PersonRecord>();
+            foreach ( var lines in fileSystem.File.ReadAllLines(fileName))
+            {
+                string[] fields = null;
+                if(Separator == SeparatorType.Space)
+                {
+                    fields = lines.Split(fieldSeparator, System.StringSplitOptions.RemoveEmptyEntries);
+                }
+                else
+                {
+                    fields = lines.Split(fieldSeparator);
+                }
+                _records.Add( new PersonRecord
+                {
+                    LastName = fields.Length > 0? fields[0] : string.Empty,
+                    FirstName = fields.Length > 1 ? fields[1] : string.Empty,
+                    Email = fields.Length > 2 ? fields[2] : string.Empty,
+                    FavoriteColor = fields.Length > 3 ? fields[3] : string.Empty,
+                    DateOfBirth = fields.Length > 4 ? System.DateTime.Parse(fields[4]) : default(System.DateTime),
+                });;;
+            }
+            return _records;
+        }
     }
 }

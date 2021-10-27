@@ -14,4 +14,23 @@ namespace RecordProcesssor.Model
         public String FavoriteColor { get; set;}
         public DateTime  DateOfBirth { get; set;}
     }
+
+    public class PersonRecordEquityComparer : IEqualityComparer<PersonRecord>
+    {
+        public bool Equals(PersonRecord left, PersonRecord right)
+        {
+            return string.Compare(left.FirstName, right.FirstName, true) == 0 &&
+               string.Compare(left.LastName, right.LastName, true) == 0 &&
+               string.Compare(left.Email, right.Email, true) == 0 &&
+               string.Compare(left.FavoriteColor, right.FavoriteColor, true) == 0 &&
+               left.DateOfBirth == right.DateOfBirth;
+        }
+
+        public int GetHashCode(PersonRecord record)
+        {
+            var hCode = record.LastName.ToLower() + record.FirstName.ToLower() + record.DateOfBirth.ToString();
+            return hCode.GetHashCode();
+        }
+    }
+
 }
