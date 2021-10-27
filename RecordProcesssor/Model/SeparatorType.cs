@@ -1,4 +1,4 @@
-﻿namespace RecordProcesssor
+﻿namespace RecordProcesssor.Model
 {
     public enum SeparatorType
     {

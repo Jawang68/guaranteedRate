@@ -5,7 +5,6 @@ using RecordProcesssor;
 using System.IO;
 using System;
 using RecordProcesssor.Model;
-using Newtonsoft.Json;
 using System.Linq;
 
 namespace RecordProcessorTest
@@ -110,7 +109,7 @@ namespace RecordProcessorTest
 
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord();
+            var actualRecords = processor.ProcessRecords();
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
@@ -128,7 +127,7 @@ namespace RecordProcessorTest
 
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord();
+            var actualRecords = processor.ProcessRecords();
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
@@ -146,7 +145,7 @@ namespace RecordProcessorTest
 
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord();
+            var actualRecords = processor.ProcessRecords();
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
@@ -163,7 +162,7 @@ namespace RecordProcessorTest
             });
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord().ToArray();
+            var actualRecords = processor.ProcessRecords().ToArray();
 
             //Verify
             Assert.Multiple( () =>
@@ -188,7 +187,7 @@ namespace RecordProcessorTest
             });
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord().ToArray();
+            var actualRecords = processor.ProcessRecords().ToArray();
 
             //Verify
             foreach(var record in actualRecords)
@@ -207,7 +206,7 @@ namespace RecordProcessorTest
 
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecord = processor.ProcessRecord().First();
+            var actualRecord = processor.ProcessRecords().First();
 
             //Verify
             Assert.Multiple(() =>
@@ -234,7 +233,7 @@ namespace RecordProcessorTest
 
             //Test
             var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecord();
+            var actualRecords = processor.ProcessRecords();
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
@@ -252,8 +251,102 @@ namespace RecordProcessorTest
             var processor = new RecordProcessor(fileSystem, fileName);
 
             // Verify
-            var ex = Assert.Throws<FormatException>(() => { processor.ProcessRecord(); });
+            var ex = Assert.Throws<FormatException>(() => { processor.ProcessRecords(); });
         }
+        #endregion
+
+        #region DisplayRecord tests
+        [Test]
+        public void DisplayRecords_OrderByDoBAscending_DisplayRecordsInOrder()
+        {
+
+            //Setup 
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
+                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968")
+                }
+            });
+
+            //Test
+            var processor = new RecordProcessor(fileSystem, fileName);
+            processor.ProcessRecords();
+            var results = processor.DisplayRecords("DateOfBirth");
+
+            //Verify
+            Assert.AreEqual(DateTime.Parse("7/6/1968"), results.First().DateOfBirth);
+        }
+
+        [Test]
+        public void DisplayRecords_OrderByColorThenLastName_DisplayRecordsInOrder()
+        {
+            //Setup 
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
+                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968\n" +
+                                            "Gates|Bill|BillGates@microsoft.com|Blue|7/13/1965")
+                }
+            });
+
+            var expected = new List<PersonRecord> 
+            {
+                 new PersonRecord
+                {
+                    LastName = "Gates",
+                    FirstName = "Bill",
+                    Email = "billGates@microsoft.com",
+                    FavoriteColor = "Blue",
+                    DateOfBirth = DateTime.Parse("1965/7/13")
+                },
+                new PersonRecord
+                {
+                    LastName = "Wang",
+                    FirstName = "James",
+                    Email = "jawang68@gmail.com",
+                    FavoriteColor = "Blue",
+                    DateOfBirth = DateTime.Parse("1968/7/6")
+                },
+                new PersonRecord
+                {
+                    LastName = "Lee",
+                    FirstName = "Jane",
+                    Email = "janeLee@yahoo.com",
+                    FavoriteColor = "Pink",
+                    DateOfBirth = DateTime.Parse("1988/9/16")
+                }
+            };
+
+            //Test
+            var processor = new RecordProcessor(fileSystem, fileName);
+            processor.ProcessRecords();
+            var results = processor.DisplayRecords("FavoriteColor, LastName" );
+
+            //Verify
+            Assert.IsTrue(Enumerable.SequenceEqual(expected, results, new PersonRecordEquityComparer()));
+        }
+
+        [Test]
+        public void DisplayRecords_OrderByLastNameDescending_DisplayRecordsInOrder()
+        {
+
+            //Setup 
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+            {
+                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
+                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968")
+                }
+            });
+
+            //Test
+            var processor = new RecordProcessor(fileSystem, fileName);
+            processor.ProcessRecords();
+            var results = processor.DisplayRecords("LastName descending");
+
+            //Verify
+            Assert.AreEqual("Wang", results.First().LastName);
+        }
+
         #endregion
     }
 }

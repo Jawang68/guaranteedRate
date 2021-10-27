@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RecordProcesssor.Model
 {
@@ -13,6 +10,7 @@ namespace RecordProcesssor.Model
         public String Email { get; set; }
         public String FavoriteColor { get; set;}
         public DateTime  DateOfBirth { get; set;}
+        public string DateOfBirthStr => DateOfBirth.ToString("M/d/yyyy");
     }
 
     public class PersonRecordEquityComparer : IEqualityComparer<PersonRecord>

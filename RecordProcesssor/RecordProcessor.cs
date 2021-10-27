@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq.Dynamic;
 
 namespace RecordProcesssor
 {
@@ -84,7 +85,7 @@ namespace RecordProcesssor
             return new List<PersonRecord>();
         }
 
-        public List<PersonRecord> ProcessRecord()
+        public List<PersonRecord> ProcessRecords()
         {
             char[] fieldSeparator = null;
             switch(Separator)
@@ -124,6 +125,12 @@ namespace RecordProcesssor
                 });;;
             }
             return _records;
+        }
+
+        public List<PersonRecord> DisplayRecords(string orderBy)
+        {
+            return _records.AsQueryable()
+                           .OrderBy(orderBy).ToList();
         }
     }
 }
