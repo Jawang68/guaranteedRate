@@ -47,10 +47,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interfaces\IRecordRepository.cs" />
     <Compile Include="Model\PersonRecord.cs" />
     <Compile Include="Model\SeparatorType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RecordProcessor.cs" />
+    <Compile Include="FileRecordRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

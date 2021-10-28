@@ -1,13 +1,14 @@
 using NUnit.Framework;
 using System.IO.Abstractions.TestingHelpers;
 using System.Collections.Generic;
-using RecordProcesssor;
 using System.IO;
 using System;
 using RecordProcesssor.Model;
 using System.Linq;
+using PersonRecordService;
+using RecordProcessorTest;
 
-namespace RecordProcessorTest
+namespace FileRecordRepositoryTest
 {
     public class Tests
     {
@@ -29,8 +30,8 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var separator = processor.Separator;
+            var repo = new FileRecordRepository(fileSystem);
+            var separator = repo.GetSeparator(fileName);
 
             // Verify
             Assert.AreEqual(SeparatorType.Pipe, separator);
@@ -46,10 +47,11 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            
+            var repo = new FileRecordRepository(fileSystem);
+            var separator = repo.GetSeparator(fileName);
+
             // Verify
-            Assert.AreEqual(SeparatorType.Comma, processor.Separator);
+            Assert.AreEqual(SeparatorType.Comma, separator);
         }
 
         [Test]
@@ -62,19 +64,20 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            
+            var repo = new FileRecordRepository(fileSystem);
+            var separator = repo.GetSeparator(fileName);
+
             // Verify
-            Assert.AreEqual(SeparatorType.Space, processor.Separator);
+            Assert.AreEqual(SeparatorType.Space, separator);
         }
 
         [Test]
         public void GetSeparator_FileNameIsNull_ReturnNull()
         {
-            var processor = new RecordProcessor(null);
+            var repo = new FileRecordRepository(null);
             
             // Verify
-            Assert.IsNull(processor.Separator);
+            Assert.IsNull(repo.GetSeparator(null));
         }
 
         [Test]
@@ -83,22 +86,22 @@ namespace RecordProcessorTest
             // Setup
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"c:\aDifferentFile.txt", new MockFileData("Wang\tJames\tJawang68@gmail.com\tBlue\t7/6/1968")},
+                { @"c:\DifferentFile.txt", new MockFileData("Wang\tJames\tJawang68@gmail.com\tBlue\t7/6/1968")},
             });
 
             var expectedMessage = $"Input file {fileName} is corrupted";
-            var processor = new RecordProcessor(fileSystem, fileName);
+            var repo = new FileRecordRepository(fileSystem);
 
             // Verify
-            var ex = Assert.Throws<InvalidDataException>(() => {var separator = processor.Separator;});
+            var ex = Assert.Throws<InvalidDataException>(() => {var separator = repo.GetSeparator(fileName);});
             Assert.AreEqual(expectedMessage, ex.Message);
         }
 
         #endregion
 
-        #region ProcessorRecord tests
+        #region SaveRecord tests
         [Test]
-        public void ProcessRecord_CommaSeparated_GetAllFields()
+        public void SaveRecord_CommaSeparated_GetAllFields()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -108,15 +111,16 @@ namespace RecordProcessorTest
             var expectedRecords = TestData.OneRecord;
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
-        public void ProcessRecord_SeparatedWithMultipleSpaces_GetAllFields()
+        public void SaveRecord_SeparatedWithMultipleSpaces_GetAllFields()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             { 
@@ -126,15 +130,16 @@ namespace RecordProcessorTest
             var expectedRecords = TestData.OneRecord;
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
-        public void ProcessRecord_SeparatedWithPipe_GetAllFields()
+        public void SaveRecord_SeparatedWithPipe_GetAllFields()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -144,15 +149,16 @@ namespace RecordProcessorTest
             var expectedRecords = TestData.OneRecord;
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
-        public void ProcessRecord_WithMissingFields_SetMissingFieldsToDefault()
+        public void SaveRecord_WithMissingFields_SetMissingFieldsToDefault()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -160,9 +166,11 @@ namespace RecordProcessorTest
                                             "Wang|James|Jawang68@gmail.com||7/6/1968\n" +
                                             "Wang|James|Jawang68@gmail.com|Blue") }
             });
+
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords().ToArray();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
             Assert.Multiple( () =>
@@ -175,7 +183,7 @@ namespace RecordProcessorTest
         }
 
         [Test]
-        public void ProcessRecord_WithDifferentDateFormat_SetDateOfBirthField()
+        public void SaveRecord_WithDifferentDateFormat_SetDateOfBirthField()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -185,19 +193,21 @@ namespace RecordProcessorTest
                                             "Wang|James|Jawang68@gmail.com|Blue|1968-7-6"
                                             )}
             });
+
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords().ToArray();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
-            foreach(var record in actualRecords)
+            foreach (var record in actualRecords)
             {
                 Assert.AreEqual(DateTime.Parse("7/6/1968"), record.DateOfBirth);
             }
         }
 
         [Test]
-        public void ProcessRecord_WithEmptyRecord_SetAllFieldsToDefault()
+        public void SaveRecord_WithEmptyRecord_SetAllFieldsToDefault()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -205,8 +215,9 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecord = processor.ProcessRecords().First();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecord = repo.GetRecords(null).First();
 
             //Verify
             Assert.Multiple(() =>
@@ -221,7 +232,7 @@ namespace RecordProcessorTest
         }
 
         [Test]
-        public void ProcessRecord_WithMultipleRecords_SetMultipleRecords()
+        public void SaveRecord_WithMultipleRecords_SetMultipleRecords()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -232,15 +243,16 @@ namespace RecordProcessorTest
             var expectedRecords = TestData.TwoRecords;
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            var actualRecords = processor.ProcessRecords();
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var actualRecords = repo.GetRecords(null);
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
-        public void ProcessRecord_WithInvalidDoB_ThrowFormatException()
+        public void SaveRecord_WithInvalidDoB_ThrowFormatException()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
@@ -248,10 +260,10 @@ namespace RecordProcessorTest
             });
             
             var expectedMessage = $"Input file {fileName} is corrupted";
-            var processor = new RecordProcessor(fileSystem, fileName);
+            var repo = new FileRecordRepository(fileSystem);
 
             // Verify
-            var ex = Assert.Throws<FormatException>(() => { processor.ProcessRecords(); });
+            var ex = Assert.Throws<FormatException>(() => { repo.SaveRecord(fileName); });
         }
         #endregion
 
@@ -269,9 +281,9 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            processor.ProcessRecords();
-            var results = processor.DisplayRecords("DateOfBirth");
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var results = repo.GetRecords("DateOfBirth");
 
             //Verify
             Assert.AreEqual(DateTime.Parse("7/6/1968"), results.First().DateOfBirth);
@@ -318,9 +330,9 @@ namespace RecordProcessorTest
             };
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            processor.ProcessRecords();
-            var results = processor.DisplayRecords("FavoriteColor, LastName" );
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var results = repo.GetRecords("FavoriteColor, LastName" );
 
             //Verify
             Assert.IsTrue(Enumerable.SequenceEqual(expected, results, new PersonRecordEquityComparer()));
@@ -339,9 +351,9 @@ namespace RecordProcessorTest
             });
 
             //Test
-            var processor = new RecordProcessor(fileSystem, fileName);
-            processor.ProcessRecords();
-            var results = processor.DisplayRecords("LastName descending");
+            var repo = new FileRecordRepository(fileSystem);
+            repo.SaveRecord(fileName);
+            var results = repo.GetRecords("LastName descending");
 
             //Verify
             Assert.AreEqual("Wang", results.First().LastName);
