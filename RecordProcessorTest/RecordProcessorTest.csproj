@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RecordProcesssor\RecordProcesssor.csproj" />
+    <ProjectReference Include="..\RecordProcesssor\PersonRecordConsole.csproj" />
   </ItemGroup>
 
 </Project>
