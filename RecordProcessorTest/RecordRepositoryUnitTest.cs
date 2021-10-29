@@ -8,9 +8,9 @@ using System.Linq;
 using PersonRecordService;
 using RecordProcessorTest;
 
-namespace FileRecordRepositoryTest
+namespace FileRecordRepositoryTest 
 {
-    public class Tests
+    public class RecordRepositoryTests : RecordRepositoryBase
     {
         private const string fileName = @"c:\myfile.txt";
 
@@ -69,15 +69,6 @@ namespace FileRecordRepositoryTest
 
             // Verify
             Assert.AreEqual(SeparatorType.Space, separator);
-        }
-
-        [Test]
-        public void GetSeparator_FileNameIsNull_ReturnNull()
-        {
-            var repo = new FileRecordRepository(null);
-            
-            // Verify
-            Assert.IsNull(repo.GetSeparator(null));
         }
 
         [Test]
@@ -267,22 +258,15 @@ namespace FileRecordRepositoryTest
         }
         #endregion
 
-        #region DisplayRecord tests
+        #region GetRecords tests
         [Test]
-        public void DisplayRecords_OrderByDoBAscending_DisplayRecordsInOrder()
+        public void GetRecords_OrderByDoBAscending_DisplayRecordsInOrder()
         {
-
             //Setup 
-            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-            {
-                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
-                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968")
-                }
-            });
+            var repo = new RecordRepositoryBase();
+            RecordRepositoryBase._records = TestData.TwoRecords;
 
-            //Test
-            var repo = new FileRecordRepository(fileSystem);
-            repo.SaveRecord(fileName);
+            //Test    
             var results = repo.GetRecords("DateOfBirth");
 
             //Verify
@@ -290,16 +274,11 @@ namespace FileRecordRepositoryTest
         }
 
         [Test]
-        public void DisplayRecords_OrderByColorThenLastName_DisplayRecordsInOrder()
+        public void GetRecords_OrderByColorThenLastName_DisplayRecordsInOrder()
         {
             //Setup 
-            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-            {
-                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
-                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968\n" +
-                                            "Gates|Bill|BillGates@microsoft.com|Blue|7/13/1965")
-                }
-            });
+            var repo = new RecordRepositoryBase();
+            RecordRepositoryBase._records = TestData.ThreeRecords;
 
             var expected = new List<PersonRecord> 
             {
@@ -330,8 +309,6 @@ namespace FileRecordRepositoryTest
             };
 
             //Test
-            var repo = new FileRecordRepository(fileSystem);
-            repo.SaveRecord(fileName);
             var results = repo.GetRecords("FavoriteColor, LastName" );
 
             //Verify
@@ -339,20 +316,13 @@ namespace FileRecordRepositoryTest
         }
 
         [Test]
-        public void DisplayRecords_OrderByLastNameDescending_DisplayRecordsInOrder()
+        public void GetRecords_OrderByLastNameDescending_DisplayRecordsInOrder()
         {
-
             //Setup 
-            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-            {
-                {fileName, new MockFileData("Lee|Jane|janeLee@yahoo.com|Pink|1988/9/16\n" +
-                                            "Wang|James|Jawang68@gmail.com|Blue|7/6/1968")
-                }
-            });
+            var repo = new RecordRepositoryBase();
+            RecordRepositoryBase._records = TestData.TwoRecords;
 
             //Test
-            var repo = new FileRecordRepository(fileSystem);
-            repo.SaveRecord(fileName);
             var results = repo.GetRecords("LastName descending");
 
             //Verify
