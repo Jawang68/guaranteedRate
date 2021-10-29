@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PersonRecordService.Interfaces
 {
-    interface IRecordRepository
+    public interface IRecordRepository
     {
        List<PersonRecord> GetRecords(string orderBy); 
        void SaveRecord(string record); 
