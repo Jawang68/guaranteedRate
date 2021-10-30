@@ -6,9 +6,8 @@ using System;
 using RecordProcesssor.Model;
 using System.Linq;
 using PersonRecordService;
-using RecordProcessorTest;
 
-namespace FileRecordRepositoryTest 
+namespace RecordRepositoryTests
 {
     public class RecordRepositoryTests : RecordRepositoryBase
     {
@@ -24,7 +23,7 @@ namespace FileRecordRepositoryTest
         public void GetSeparator_IsSeparatedByPipe_ReturnPipe()
         {
             // Setup
-            var fileSystem = new MockFileSystem( new Dictionary<string, MockFileData>
+            var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
                 { fileName, new MockFileData("Wang|James|Jawang68@gmail.com|Blue|7/6/1968")},
             });
@@ -72,7 +71,7 @@ namespace FileRecordRepositoryTest
         }
 
         [Test]
-        public void  GetSeparator_FileNameIsInvalid_ThrowInvalidDataException()
+        public void GetSeparator_FileNameIsInvalid_ThrowInvalidDataException()
         {
             // Setup
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
@@ -84,7 +83,7 @@ namespace FileRecordRepositoryTest
             var repo = new FileRecordRepository(fileSystem);
 
             // Verify
-            var ex = Assert.Throws<InvalidDataException>(() => {var separator = repo.GetSeparator(fileName);});
+            var ex = Assert.Throws<InvalidDataException>(() => { var separator = repo.GetSeparator(fileName); });
             Assert.AreEqual(expectedMessage, ex.Message);
         }
 
@@ -107,14 +106,14 @@ namespace FileRecordRepositoryTest
             var actualRecords = repo.GetRecords(null);
 
             //Verify
-            Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
+            Assert.IsTrue(expectedRecords.SequenceEqual(actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
         public void SaveRecord_SeparatedWithMultipleSpaces_GetAllFields()
         {
             var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-            { 
+            {
                 { fileName, new MockFileData("Wang  James Jawang68@gmail.com  Blue   7/6/1968")},
             });
 
@@ -126,7 +125,7 @@ namespace FileRecordRepositoryTest
             var actualRecords = repo.GetRecords(null);
 
             //Verify
-            Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
+            Assert.IsTrue(expectedRecords.SequenceEqual(actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
@@ -145,7 +144,7 @@ namespace FileRecordRepositoryTest
             var actualRecords = repo.GetRecords(null);
 
             //Verify
-            Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
+            Assert.IsTrue(expectedRecords.SequenceEqual(actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
@@ -164,12 +163,12 @@ namespace FileRecordRepositoryTest
             var actualRecords = repo.GetRecords(null);
 
             //Verify
-            Assert.Multiple( () =>
-                {
-                    Assert.AreEqual(string.Empty, actualRecords[0].LastName);
-                    Assert.AreEqual(string.Empty, actualRecords[1].FavoriteColor);
-                    Assert.AreEqual(default(DateTime), actualRecords[2].DateOfBirth);
-                }
+            Assert.Multiple(() =>
+               {
+                   Assert.AreEqual(string.Empty, actualRecords[0].LastName);
+                   Assert.AreEqual(string.Empty, actualRecords[1].FavoriteColor);
+                   Assert.AreEqual(default(DateTime), actualRecords[2].DateOfBirth);
+               }
             );
         }
 
@@ -239,7 +238,7 @@ namespace FileRecordRepositoryTest
             var actualRecords = repo.GetRecords(null);
 
             //Verify
-            Assert.IsTrue(Enumerable.SequenceEqual(expectedRecords, actualRecords, new PersonRecordEquityComparer()));
+            Assert.IsTrue(expectedRecords.SequenceEqual(actualRecords, new PersonRecordEquityComparer()));
         }
 
         [Test]
@@ -249,7 +248,7 @@ namespace FileRecordRepositoryTest
             {
                 { fileName, new MockFileData("Wang|James|Jawang68@gmail.com|Blue|7/6/19x8")}
             });
-            
+
             var expectedMessage = $"Input file {fileName} is corrupted";
             var repo = new FileRecordRepository(fileSystem);
 
@@ -264,7 +263,7 @@ namespace FileRecordRepositoryTest
         {
             //Setup 
             var repo = new RecordRepositoryBase();
-            RecordRepositoryBase._records = TestData.TwoRecords;
+            _records = TestData.TwoRecords;
 
             //Test    
             var results = repo.GetRecords("DateOfBirth");
@@ -278,9 +277,9 @@ namespace FileRecordRepositoryTest
         {
             //Setup 
             var repo = new RecordRepositoryBase();
-            RecordRepositoryBase._records = TestData.ThreeRecords;
+            _records = TestData.ThreeRecords;
 
-            var expected = new List<PersonRecord> 
+            var expected = new List<PersonRecord>
             {
                  new PersonRecord
                 {
@@ -309,10 +308,10 @@ namespace FileRecordRepositoryTest
             };
 
             //Test
-            var results = repo.GetRecords("FavoriteColor, LastName" );
+            var results = repo.GetRecords("FavoriteColor, LastName");
 
             //Verify
-            Assert.IsTrue(Enumerable.SequenceEqual(expected, results, new PersonRecordEquityComparer()));
+            Assert.IsTrue(expected.SequenceEqual(results, new PersonRecordEquityComparer()));
         }
 
         [Test]
@@ -320,7 +319,7 @@ namespace FileRecordRepositoryTest
         {
             //Setup 
             var repo = new RecordRepositoryBase();
-            RecordRepositoryBase._records = TestData.TwoRecords;
+            _records = TestData.TwoRecords;
 
             //Test
             var results = repo.GetRecords("LastName descending");
